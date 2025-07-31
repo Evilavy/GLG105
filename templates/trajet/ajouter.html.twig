@@ -1,0 +1,252 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Créer un trajet{% endblock %}
+
+{% block body %}
+<div class="container mx-auto max-w-2xl mt-8">
+    <h1 class="text-2xl font-bold mb-6">Créer un nouveau trajet</h1>
+
+    {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {{ error|raw }}
+        </div>
+    {% endif %}
+    {% if success %}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            {{ success }}
+        </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4 bg-white p-6 rounded shadow">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="relative">
+                <label for="pointDepart" class="block font-semibold mb-1">Point de départ *</label>
+                <input type="text" id="pointDepart" name="pointDepart" class="w-full border rounded px-3 py-2" required placeholder="Tapez une adresse...">
+                <div id="suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-b shadow-lg max-h-60 overflow-y-auto hidden"></div>
+            </div>
+            <div>
+                <label for="ecoleArrivee" class="block font-semibold mb-1">École d'arrivée *</label>
+                <select id="ecoleArrivee" name="ecoleArrivee" class="w-full border rounded px-3 py-2" required>
+                    <option value="">Sélectionnez une école</option>
+                    {% for ecole in ecoles %}
+                        <option value="{{ ecole.id }}">{{ ecole.nom }} - {{ ecole.ville }} ({{ ecole.codePostal }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="dateDepart" class="block font-semibold mb-1">Date de départ *</label>
+                <input type="date" id="dateDepart" name="dateDepart" class="w-full border rounded px-3 py-2" required>
+            </div>
+            <div>
+                <label for="heureDepart" class="block font-semibold mb-1">Heure de départ *</label>
+                <input type="time" id="heureDepart" name="heureDepart" class="w-full border rounded px-3 py-2" required>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="dateArrivee" class="block font-semibold mb-1">Date d'arrivée *</label>
+                <input type="date" id="dateArrivee" name="dateArrivee" class="w-full border rounded px-3 py-2" readonly>
+                <p class="text-sm text-gray-600 mt-1">Même date que le départ</p>
+            </div>
+            <div>
+                <label for="heureArrivee" class="block font-semibold mb-1">Heure d'arrivée *</label>
+                <input type="time" id="heureArrivee" name="heureArrivee" class="w-full border rounded px-3 py-2" required>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="nombrePlaces" class="block font-semibold mb-1">Places disponibles *</label>
+                <input type="number" id="nombrePlaces" name="nombrePlaces" min="0" max="10" class="w-full border rounded px-3 py-2" readonly>
+                <p class="text-sm text-gray-600 mt-1">Calculé automatiquement</p>
+            </div>
+            <div>
+                <label for="prix" class="block font-semibold mb-1">Prix (€)</label>
+                <input type="number" id="prix" name="prix" min="0" step="0.01" class="w-full border rounded px-3 py-2" value="0">
+            </div>
+        </div>
+
+        {% if voitures is not empty %}
+            <div>
+                <label for="voitureId" class="block font-semibold mb-1">Voiture *</label>
+                <select id="voitureId" name="voitureId" class="w-full border rounded px-3 py-2" required>
+                    <option value="">Sélectionnez une voiture</option>
+                    {% for voiture in voitures %}
+                        <option value="{{ voiture.id }}" data-places="{{ voiture.nombrePlaces }}">{{ voiture.marque }} {{ voiture.modele }} ({{ voiture.couleur }}) - {{ voiture.nombrePlaces }} places</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% else %}
+            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                <p>Aucune voiture trouvée. Vous devez d'abord ajouter une voiture avant de créer un trajet.</p>
+                <a href="{{ path('voiture_ajouter') }}" class="text-blue-600 hover:underline">Ajouter une voiture</a>
+            </div>
+        {% endif %}
+
+        <div>
+            <label for="description" class="block font-semibold mb-1">Description</label>
+            <textarea id="description" name="description" rows="3" class="w-full border rounded px-3 py-2" placeholder="Description du trajet, conditions spéciales..."></textarea>
+        </div>
+
+        {% if enfants is not empty %}
+            <div>
+                <label class="block font-semibold mb-2">Enfants dans la voiture</label>
+                <div class="space-y-2 max-h-40 overflow-y-auto border rounded p-3">
+                    {% for enfant in enfants %}
+                        <label class="flex items-center space-x-2">
+                            <input type="checkbox" name="enfants[]" value="{{ enfant.id }}" class="enfant-checkbox rounded">
+                            <span>{{ enfant.prenom }} {{ enfant.nom }} ({{ enfant.dateNaissance }})</span>
+                        </label>
+                    {% endfor %}
+                </div>
+                <p class="text-sm text-gray-600 mt-1">Cochez les enfants qui seront dans votre voiture</p>
+            </div>
+        {% else %}
+            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                <p>Aucun enfant trouvé. Vous devez d'abord ajouter des enfants avant de créer un trajet.</p>
+                <a href="{{ path('enfant_ajouter') }}" class="text-blue-600 hover:underline">Ajouter un enfant</a>
+            </div>
+        {% endif %}
+
+        <div class="flex justify-end gap-2 pt-4">
+            <a href="{{ path('app_home') }}" class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Annuler</a>
+            <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700" {% if enfants is empty or voitures is empty or ecoles is empty %}disabled{% endif %}>
+                Créer le trajet
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Définir la date minimale à aujourd'hui
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('dateDepart').min = today;
+    
+    // Éléments du DOM
+    const voitureSelect = document.getElementById('voitureId');
+    const nombrePlacesInput = document.getElementById('nombrePlaces');
+    const enfantCheckboxes = document.querySelectorAll('.enfant-checkbox');
+    const dateDepartInput = document.getElementById('dateDepart');
+    const dateArriveeInput = document.getElementById('dateArrivee');
+    const heureDepartInput = document.getElementById('heureDepart');
+    const heureArriveeInput = document.getElementById('heureArrivee');
+    const pointDepartInput = document.getElementById('pointDepart');
+    const suggestionsDiv = document.getElementById('suggestions');
+    
+    let timeoutId = null;
+    
+    // Fonction pour calculer les places disponibles
+    function calculerPlacesDisponibles() {
+        const voitureOption = voitureSelect.options[voitureSelect.selectedIndex];
+        if (voitureOption && voitureOption.value) {
+            const placesVoiture = parseInt(voitureOption.dataset.places);
+            const enfantsSelectionnes = document.querySelectorAll('.enfant-checkbox:checked').length;
+            const placesDisponibles = Math.max(0, placesVoiture - enfantsSelectionnes);
+            
+            nombrePlacesInput.value = placesDisponibles;
+            
+            // Changer la couleur du champ selon les places disponibles
+            if (placesDisponibles === 0) {
+                nombrePlacesInput.classList.add('bg-red-100', 'border-red-400');
+                nombrePlacesInput.classList.remove('bg-green-100', 'border-green-400');
+            } else {
+                nombrePlacesInput.classList.add('bg-green-100', 'border-green-400');
+                nombrePlacesInput.classList.remove('bg-red-100', 'border-red-400');
+            }
+        } else {
+            nombrePlacesInput.value = '';
+            nombrePlacesInput.classList.remove('bg-green-100', 'border-green-400', 'bg-red-100', 'border-red-400');
+        }
+    }
+    
+    // Fonction pour synchroniser la date d'arrivée avec la date de départ
+    function synchroniserDateArrivee() {
+        dateArriveeInput.value = dateDepartInput.value;
+    }
+    
+    // Fonction pour valider les heures
+    function validerHeures() {
+        const heureDepart = heureDepartInput.value;
+        const heureArrivee = heureArriveeInput.value;
+        
+        if (heureDepart && heureArrivee && heureDepart >= heureArrivee) {
+            heureArriveeInput.setCustomValidity('L\'heure d\'arrivée doit être après l\'heure de départ');
+        } else {
+            heureArriveeInput.setCustomValidity('');
+        }
+    }
+    
+    // Fonction pour rechercher des adresses
+    async function rechercherAdresses(query) {
+        if (query.length < 3) {
+            suggestionsDiv.innerHTML = '';
+            suggestionsDiv.classList.add('hidden');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
+            const data = await response.json();
+            
+            if (data.features && data.features.length > 0) {
+                suggestionsDiv.innerHTML = '';
+                data.features.forEach(feature => {
+                    const div = document.createElement('div');
+                    div.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200';
+                    div.textContent = feature.properties.label;
+                    div.addEventListener('click', () => {
+                        pointDepartInput.value = feature.properties.label;
+                        suggestionsDiv.classList.add('hidden');
+                    });
+                    suggestionsDiv.appendChild(div);
+                });
+                suggestionsDiv.classList.remove('hidden');
+            } else {
+                suggestionsDiv.innerHTML = '<div class="p-3 text-gray-500">Aucune adresse trouvée</div>';
+                suggestionsDiv.classList.remove('hidden');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la recherche d\'adresses:', error);
+        }
+    }
+    
+    // Écouter les changements de voiture
+    voitureSelect.addEventListener('change', calculerPlacesDisponibles);
+    
+    // Écouter les changements de sélection d'enfants
+    enfantCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', calculerPlacesDisponibles);
+    });
+    
+    // Écouter les changements de date de départ
+    dateDepartInput.addEventListener('change', synchroniserDateArrivee);
+    
+    // Écouter les changements d'heures
+    heureDepartInput.addEventListener('change', validerHeures);
+    heureArriveeInput.addEventListener('change', validerHeures);
+    
+    // Écouter les changements du point de départ pour l'autocomplétion
+    pointDepartInput.addEventListener('input', (e) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            rechercherAdresses(e.target.value);
+        }, 300);
+    });
+    
+    // Masquer les suggestions quand on clique ailleurs
+    document.addEventListener('click', (e) => {
+        if (!pointDepartInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.classList.add('hidden');
+        }
+    });
+    
+    // Calculer les places au chargement de la page
+    calculerPlacesDisponibles();
+});
+</script>
+{% endblock %} 

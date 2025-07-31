@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Chat - Trajet #{{ trajetId }}{% endblock %}
+
+{% block body %}
+<div class="container mx-auto max-w-4xl mt-8">
+    <div class="bg-white rounded-lg shadow">
+        <!-- Header -->
+        <div class="bg-blue-600 text-white p-4 rounded-t-lg">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-bold">Chat - Trajet #{{ trajetId }}</h1>
+                    {% if trajet %}
+                        <p class="text-blue-100">{{ trajet.pointDepart }} → {{ trajet.pointArrivee }}</p>
+                        <p class="text-blue-100">{{ trajet.dateDepart|date('d/m/Y') }} à {{ trajet.heureDepart }}</p>
+                    {% endif %}
+                </div>
+                <a href="{{ path('trajet_rechercher') }}" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded">
+                    ← Retour
+                </a>
+            </div>
+        </div>
+
+        {% if error %}
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 m-4 rounded">
+                {{ error|raw }}
+            </div>
+        {% endif %}
+        {% if success %}
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 m-4 rounded">
+                {{ success }}
+            </div>
+        {% endif %}
+
+        <!-- Messages -->
+        <div class="p-4 h-96 overflow-y-auto bg-gray-50" id="messages-container">
+            {% if messages is empty %}
+                <div class="text-center text-gray-500 py-8">
+                    <p>Aucun message pour le moment.</p>
+                    <p class="text-sm">Commencez la conversation !</p>
+                </div>
+            {% else %}
+                {% for message in messages %}
+                    <div class="mb-4 {% if message.expediteurId == app.user.id %}text-right{% endif %}">
+                        <div class="inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg {% if message.expediteurId == app.user.id %}bg-blue-600 text-white{% else %}bg-white border{% endif %}">
+                            <p class="text-sm">{{ message.contenu }}</p>
+                            <p class="text-xs mt-1 {% if message.expediteurId == app.user.id %}text-blue-100{% else %}text-gray-500{% endif %}">
+                                {{ message.dateEnvoi|date('d/m/Y H:i') }}
+                                {% if message.lu and message.expediteurId == app.user.id %}
+                                    <span class="ml-1">✓</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Formulaire d'envoi -->
+        <div class="p-4 border-t bg-white">
+            <form method="post" class="flex gap-2">
+                <input type="text" name="contenu" placeholder="Tapez votre message..." 
+                       class="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                       required>
+                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Envoyer
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messagesContainer = document.getElementById('messages-container');
+    
+    // Scroll vers le bas pour voir les nouveaux messages
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+    
+    // Scroll au chargement de la page
+    scrollToBottom();
+    
+    // Auto-refresh toutes les 5 secondes
+    setInterval(function() {
+        location.reload();
+    }, 5000);
+});
+</script>
+{% endblock %} 
