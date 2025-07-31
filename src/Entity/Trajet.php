@@ -28,6 +28,9 @@ class Trajet
     #[ORM\Column(length: 255)]
     private ?string $ville = null;
 
+    #[ORM\Column]
+    private ?int $coutPoints = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -89,6 +92,18 @@ class Trajet
     public function setVille(string $ville): static
     {
         $this->ville = $ville;
+
+        return $this;
+    }
+
+    public function getCoutPoints(): ?int
+    {
+        return $this->coutPoints;
+    }
+
+    public function setCoutPoints(int $coutPoints): static
+    {
+        $this->coutPoints = $coutPoints;
 
         return $this;
     }

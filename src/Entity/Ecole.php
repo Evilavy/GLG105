@@ -19,6 +19,12 @@ class Ecole
     #[ORM\Column(length: 255)]
     private ?string $adresse = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $ville = null;
+
+    #[ORM\Column(length: 10)]
+    private ?string $codePostal = null;
+
     public function getId(): ?int
     {
         return $this->id;

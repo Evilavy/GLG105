@@ -4,9 +4,13 @@ namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User
+#[UniqueEntity(fields: ['email'], message: 'There is already an account with this email')]
+class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -34,9 +38,44 @@ class User
     #[ORM\Column]
     private ?bool $isVerified = null;
 
+    #[ORM\Column(options: ['default' => 0])]
+    private ?int $points = 0;
+
+    #[ORM\Column(length: 50)]
+    private ?string $role = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $roleAutre = null;
+
+    #[ORM\Column]
+    private ?bool $isApprovedByAdmin = false;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $approvedAt = null;
+
+    #[ORM\Column(type: 'datetime')]
+    private ?\DateTimeInterface $createdAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+        $this->isApprovedByAdmin = false;
+        $this->isVerified = false;
+    }
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * A visual identifier that represents this user.
+     *
+     * @see UserInterface
+     */
+    public function getUserIdentifier(): string
+    {
+        return (string) $this->email;
     }
 
     public function getEmail(): ?string
@@ -75,9 +114,16 @@ class User
         return $this;
     }
 
+    /**
+     * @see UserInterface
+     */
     public function getRoles(): array
     {
-        return $this->roles;
+        $roles = $this->roles;
+        // guarantee every user at least has ROLE_USER
+        $roles[] = 'ROLE_USER';
+
+        return array_unique($roles);
     }
 
     public function setRoles(array $roles): static
@@ -121,5 +167,86 @@ class User
         $this->isVerified = $isVerified;
 
         return $this;
+    }
+
+    public function getPoints(): ?int
+    {
+        return $this->points;
+    }
+
+    public function setPoints(int $points): static
+    {
+        $this->points = $points;
+
+        return $this;
+    }
+
+    public function getRole(): ?string
+    {
+        return $this->role;
+    }
+
+    public function setRole(string $role): static
+    {
+        $this->role = $role;
+
+        return $this;
+    }
+
+    public function getRoleAutre(): ?string
+    {
+        return $this->roleAutre;
+    }
+
+    public function setRoleAutre(?string $roleAutre): static
+    {
+        $this->roleAutre = $roleAutre;
+
+        return $this;
+    }
+
+    public function isApprovedByAdmin(): ?bool
+    {
+        return $this->isApprovedByAdmin;
+    }
+
+    public function setIsApprovedByAdmin(bool $isApprovedByAdmin): static
+    {
+        $this->isApprovedByAdmin = $isApprovedByAdmin;
+
+        return $this;
+    }
+
+    public function getApprovedAt(): ?\DateTimeInterface
+    {
+        return $this->approvedAt;
+    }
+
+    public function setApprovedAt(?\DateTimeInterface $approvedAt): static
+    {
+        $this->approvedAt = $approvedAt;
+
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $createdAt): static
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    /**
+     * @see UserInterface
+     */
+    public function eraseCredentials(): void
+    {
+        // If you store any temporary, sensitive data on the user, clear it here
+        // $this->plainPassword = null;
     }
 }

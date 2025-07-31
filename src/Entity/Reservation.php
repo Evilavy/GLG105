@@ -19,6 +19,9 @@ class Reservation
     #[ORM\Column]
     private ?\DateTime $dateReservation = null;
 
+    #[ORM\Column(options: ['default' => 0])]
+    private ?int $pointsPayes = 0;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -44,6 +47,18 @@ class Reservation
     public function setDateReservation(\DateTime $dateReservation): static
     {
         $this->dateReservation = $dateReservation;
+
+        return $this;
+    }
+
+    public function getPointsPayes(): ?int
+    {
+        return $this->pointsPayes;
+    }
+
+    public function setPointsPayes(int $pointsPayes): static
+    {
+        $this->pointsPayes = $pointsPayes;
 
         return $this;
     }
