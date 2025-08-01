@@ -1,0 +1,132 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes trajets{% endblock %}
+
+{% block body %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+    <h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">Mes trajets</h1>
+
+    {% if error %}
+        <div style="background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ error|raw }}
+        </div>
+    {% endif %}
+
+    {% if trajets is empty %}
+        <div style="background: #fefce8; border: 1px solid #facc15; color: #ca8a04; padding: 0.75rem; border-radius: 4px;">
+            <p>Vous n'avez pas encore créé de trajets.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="{{ path('trajet_ajouter') }}" style="color: #2563eb; text-decoration: underline;">
+                    Créer votre premier trajet
+                </a>
+            </p>
+        </div>
+    {% else %}
+        <div style="display: grid; gap: 1.5rem;">
+            {% for trajet in trajets %}
+                <div style="background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                    <!-- Header du trajet -->
+                    <div style="background: #2563eb; color: white; padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h2 style="font-size: 1.25rem; font-weight: bold; margin: 0;">Trajet #{{ trajet.id }}</h2>
+                                <p style="color: #bfdbfe; margin: 0.25rem 0 0 0;">{{ trajet.pointDepart }} → {{ trajet.pointArrivee }}</p>
+                                <p style="color: #bfdbfe; margin: 0.25rem 0 0 0;">{{ trajet.dateDepart|date('d/m/Y') }} à {{ trajet.heureDepart }}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <span style="padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; 
+                                    {% if trajet.statut == 'disponible' %}background: #22c55e; color: white;
+                                    {% elseif trajet.statut == 'en_cours' %}background: #eab308; color: white;
+                                    {% elseif trajet.statut == 'termine' %}background: #6b7280; color: white;
+                                    {% else %}background: #ef4444; color: white;{% endif %}">
+                                    {{ trajet.statut|upper }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Détails du trajet -->
+                    <div style="padding: 1rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Informations du trajet</h3>
+                                <div style="display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem;">
+                                    <p><strong>Places disponibles :</strong> 
+                                        <span style="font-weight: bold; color: #16a34a;">{{ trajet.nombrePlaces }}</span>
+                                    </p>
+                                    <p><strong>Prix :</strong> 
+                                        <span style="font-weight: bold; color: #2563eb;">{{ trajet.prix }}€</span>
+                                    </p>
+                                    <p><strong>Heure d'arrivée :</strong> {{ trajet.heureArrivee }}</p>
+                                    {% if trajet.description %}
+                                        <p><strong>Description :</strong> {{ trajet.description }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div>
+                                <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Actions</h3>
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                    <a href="{{ path('trajet_ajouter') }}" style="display: block; width: 100%; padding: 0.5rem 1rem; background: #2563eb; color: white; border-radius: 4px; text-decoration: none; text-align: center; hover: background: #1d4ed8;">
+                                        Modifier le trajet
+                                    </a>
+                                    <button style="width: 100%; padding: 0.5rem 1rem; background: #dc2626; color: white; border-radius: 4px; border: none; cursor: pointer; hover: background: #b91c1c;">
+                                        Supprimer le trajet
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Conversations -->
+                        {% if conversations[trajet.id] is defined and conversations[trajet.id] is not empty %}
+                            <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem;">
+                                <h3 style="font-weight: 600; margin-bottom: 0.75rem;">Conversations ({{ conversations[trajet.id]|length }})</h3>
+                                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                    {% for autreUserId, messages in conversations[trajet.id] %}
+                                        {% set dernierMessage = messages|last %}
+                                        <div style="border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.75rem; hover: background: #f9fafb;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div style="flex: 1;">
+                                                    <p style="font-weight: 500; margin: 0;">Utilisateur #{{ autreUserId }}</p>
+                                                    <p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;">
+                                                        {{ dernierMessage.contenu|length > 50 ? dernierMessage.contenu|slice(0, 50) ~ '...' : dernierMessage.contenu }}
+                                                    </p>
+                                                    <p style="font-size: 0.75rem; color: #9ca3af; margin: 0.25rem 0 0 0;">
+                                                        {{ dernierMessage.dateEnvoi|date('d/m/Y H:i') }}
+                                                    </p>
+                                                </div>
+                                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                                    <a href="{{ path('chat_conversation', {'trajetId': trajet.id, 'destinataireId': autreUserId}) }}" 
+                                                       style="padding: 0.25rem 0.75rem; background: #2563eb; color: white; border-radius: 4px; text-decoration: none; font-size: 0.875rem; hover: background: #1d4ed8;">
+                                                        Ouvrir le chat
+                                                    </a>
+                                                    {% set messagesNonLus = 0 %}
+                                                    {% for message in messages %}
+                                                        {% if message.destinataireId == app.user.id and not message.lu %}
+                                                            {% set messagesNonLus = messagesNonLus + 1 %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                    {% if messagesNonLus > 0 %}
+                                                        <span style="padding: 0.25rem 0.5rem; background: #ef4444; color: white; border-radius: 9999px; font-size: 0.75rem;">
+                                                            {{ messagesNonLus }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% else %}
+                            <div style="border-top: 1px solid #e5e7eb; padding-top: 1rem;">
+                                <p style="color: #6b7280; text-align: center; padding: 1rem;">
+                                    Aucune conversation pour ce trajet.
+                                </p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -166,4 +166,54 @@ class TrajetController extends AbstractController
             'ecoleId' => $ecoleId,
         ]);
     }
+
+    #[Route('/mes-trajets', name: 'trajet_mes_trajets', methods: ['GET'])]
+    public function mesTrajets(): Response
+    {
+        $error = null;
+        $trajets = [];
+        $conversations = [];
+        
+        $userId = $this->getUser()->getId();
+        
+        // Récupérer les trajets de l'utilisateur connecté
+        try {
+            $response = $this->httpClient->request('GET', $this->javaApiUrl . '/trajets/conducteur/' . $userId);
+            if ($response->getStatusCode() === 200) {
+                $trajets = $response->toArray();
+            }
+        } catch (\Exception $e) {
+            $error = "Erreur lors de la récupération des trajets: " . $e->getMessage();
+        }
+
+        // Récupérer les conversations pour chaque trajet
+        foreach ($trajets as $trajet) {
+            try {
+                $response = $this->httpClient->request('GET', $this->javaApiUrl . '/messages/trajet/' . $trajet['id']);
+                if ($response->getStatusCode() === 200) {
+                    $messages = $response->toArray();
+                    if (!empty($messages)) {
+                        // Grouper par destinataire
+                        $conversationsParTrajet = [];
+                        foreach ($messages as $message) {
+                            $autreUserId = $message['expediteurId'] == $userId ? $message['destinataireId'] : $message['expediteurId'];
+                            if (!isset($conversationsParTrajet[$autreUserId])) {
+                                $conversationsParTrajet[$autreUserId] = [];
+                            }
+                            $conversationsParTrajet[$autreUserId][] = $message;
+                        }
+                        $conversations[$trajet['id']] = $conversationsParTrajet;
+                    }
+                }
+            } catch (\Exception $e) {
+                // Ignorer les erreurs pour les conversations
+            }
+        }
+        
+        return $this->render('trajet/mes_trajets.html.twig', [
+            'error' => $error,
+            'trajets' => $trajets,
+            'conversations' => $conversations,
+        ]);
+    }
 } 

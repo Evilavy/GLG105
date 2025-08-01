@@ -21,14 +21,13 @@ class ChatController extends AbstractController
         $this->httpClient = $httpClient;
     }
 
-    #[Route('/trajet/{trajetId}/conversation/{destinataireId}', name: 'chat_conversation', methods: ['GET', 'POST'])]
+    #[Route('/conversation/{trajetId}/{destinataireId}', name: 'chat_conversation', methods: ['GET', 'POST'])]
     public function conversation(Request $request, int $trajetId, int $destinataireId): Response
     {
         $error = null;
         $success = null;
         $messages = [];
         $trajet = null;
-        $destinataire = null;
         
         $userId = $this->getUser()->getId();
         
@@ -42,7 +41,7 @@ class ChatController extends AbstractController
             $error = "Erreur lors de la récupération du trajet: " . $e->getMessage();
         }
 
-        // Récupérer la conversation
+        // Récupérer les messages de la conversation
         try {
             $response = $this->httpClient->request('GET', $this->javaApiUrl . '/messages/conversation/' . $trajetId . '/' . $userId . '/' . $destinataireId);
             if ($response->getStatusCode() === 200) {
@@ -52,15 +51,17 @@ class ChatController extends AbstractController
             $error = "Erreur lors de la récupération des messages: " . $e->getMessage();
         }
 
-        // Envoyer un nouveau message
+        // Traitement de l'envoi d'un nouveau message
         if ($request->isMethod('POST')) {
             $contenu = $request->request->get('contenu');
-            if ($contenu && !empty(trim($contenu))) {
+            if ($contenu) {
                 $data = [
                     'trajetId' => $trajetId,
                     'expediteurId' => $userId,
                     'destinataireId' => $destinataireId,
-                    'contenu' => trim($contenu)
+                    'contenu' => $contenu,
+                    'dateEnvoi' => date('Y-m-d H:i:s'),
+                    'lu' => false
                 ];
                 
                 try {
@@ -73,11 +74,11 @@ class ChatController extends AbstractController
                     
                     if ($response->getStatusCode() === 201) {
                         $success = 'Message envoyé !';
-                        // Recharger les messages
-                        $response = $this->httpClient->request('GET', $this->javaApiUrl . '/messages/conversation/' . $trajetId . '/' . $userId . '/' . $destinataireId);
-                        if ($response->getStatusCode() === 200) {
-                            $messages = $response->toArray();
-                        }
+                        // Rediriger pour éviter la soumission multiple
+                        return $this->redirectToRoute('chat_conversation', [
+                            'trajetId' => $trajetId,
+                            'destinataireId' => $destinataireId
+                        ]);
                     } else {
                         $error = $response->getContent(false);
                     }
@@ -88,12 +89,12 @@ class ChatController extends AbstractController
         }
         
         return $this->render('chat/conversation.html.twig', [
+            'trajetId' => $trajetId,
+            'destinataireId' => $destinataireId,
+            'trajet' => $trajet,
+            'messages' => $messages,
             'error' => $error,
             'success' => $success,
-            'messages' => $messages,
-            'trajet' => $trajet,
-            'destinataireId' => $destinataireId,
-            'trajetId' => $trajetId,
         ]);
     }
 
@@ -101,7 +102,7 @@ class ChatController extends AbstractController
     public function messages(): Response
     {
         $error = null;
-        $messages = [];
+        $conversations = [];
         
         $userId = $this->getUser()->getId();
         
@@ -109,7 +110,45 @@ class ChatController extends AbstractController
         try {
             $response = $this->httpClient->request('GET', $this->javaApiUrl . '/messages/user/' . $userId);
             if ($response->getStatusCode() === 200) {
-                $messages = $response->toArray();
+                $tousMessages = $response->toArray();
+                
+                // Grouper les messages par conversation (trajet + autre utilisateur)
+                $conversationsGrouped = [];
+                foreach ($tousMessages as $message) {
+                    $trajetId = $message['trajetId'];
+                    $autreUserId = $message['expediteurId'] == $userId ? $message['destinataireId'] : $message['expediteurId'];
+                    $key = $trajetId . '_' . $autreUserId;
+                    
+                    if (!isset($conversationsGrouped[$key])) {
+                        $conversationsGrouped[$key] = [
+                            'trajetId' => $trajetId,
+                            'autreUserId' => $autreUserId,
+                            'messages' => [],
+                            'dernierMessage' => null,
+                            'messagesNonLus' => 0
+                        ];
+                    }
+                    
+                    $conversationsGrouped[$key]['messages'][] = $message;
+                    
+                    // Compter les messages non lus reçus par l'utilisateur
+                    if ($message['destinataireId'] == $userId && !$message['lu']) {
+                        $conversationsGrouped[$key]['messagesNonLus']++;
+                    }
+                    
+                    // Garder le dernier message pour l'aperçu
+                    if (!$conversationsGrouped[$key]['dernierMessage'] || 
+                        $message['dateEnvoi'] > $conversationsGrouped[$key]['dernierMessage']['dateEnvoi']) {
+                        $conversationsGrouped[$key]['dernierMessage'] = $message;
+                    }
+                }
+                
+                // Trier par date du dernier message (plus récent en premier)
+                uasort($conversationsGrouped, function($a, $b) {
+                    return strtotime($b['dernierMessage']['dateEnvoi']) - strtotime($a['dernierMessage']['dateEnvoi']);
+                });
+                
+                $conversations = $conversationsGrouped;
             }
         } catch (\Exception $e) {
             $error = "Erreur lors de la récupération des messages: " . $e->getMessage();
@@ -117,7 +156,7 @@ class ChatController extends AbstractController
         
         return $this->render('chat/messages.html.twig', [
             'error' => $error,
-            'messages' => $messages,
+            'conversations' => $conversations,
         ]);
     }
 } 

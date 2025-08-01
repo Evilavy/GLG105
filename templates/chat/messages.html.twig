@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes messages{% endblock %}
+
+{% block body %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+    <h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">Mes messages</h1>
+
+    {% if error %}
+        <div style="background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ error|raw }}
+        </div>
+    {% endif %}
+
+    {% if conversations is empty %}
+        <div style="background: #f0f9ff; border: 1px solid #0ea5e9; color: #0369a1; padding: 0.75rem; border-radius: 4px;">
+            <p>Vous n'avez pas encore de messages.</p>
+            <p style="margin-top: 0.5rem;">
+                <a href="{{ path('trajet_rechercher') }}" style="color: #2563eb; text-decoration: underline;">
+                    Rechercher des trajets pour commencer à discuter
+                </a>
+            </p>
+        </div>
+    {% else %}
+        <div style="display: grid; gap: 1rem;">
+            {% for conversation in conversations %}
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem; hover: box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <h3 style="font-weight: 600; margin: 0;">Trajet #{{ conversation.trajetId }}</h3>
+                                <span style="color: #6b7280; font-size: 0.875rem;">avec Utilisateur #{{ conversation.autreUserId }}</span>
+                            </div>
+                            
+                            {% if conversation.dernierMessage %}
+                                <p style="font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0 0;">
+                                    {{ conversation.dernierMessage.contenu|length > 100 ? conversation.dernierMessage.contenu|slice(0, 100) ~ '...' : conversation.dernierMessage.contenu }}
+                                </p>
+                                <p style="font-size: 0.75rem; color: #9ca3af; margin: 0.25rem 0 0 0;">
+                                    {{ conversation.dernierMessage.dateEnvoi|date('d/m/Y H:i') }}
+                                    {% if conversation.dernierMessage.expediteurId == app.user.id %}
+                                        <span style="margin-left: 0.25rem;">(envoyé par vous)</span>
+                                    {% else %}
+                                        <span style="margin-left: 0.25rem;">(reçu)</span>
+                                    {% endif %}
+                                </p>
+                            {% endif %}
+                            
+                            <p style="font-size: 0.75rem; color: #6b7280; margin: 0.25rem 0 0 0;">
+                                {{ conversation.messages|length }} message(s) dans cette conversation
+                            </p>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                            {% if conversation.messagesNonLus > 0 %}
+                                <span style="padding: 0.25rem 0.5rem; background: #ef4444; color: white; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                                    {{ conversation.messagesNonLus }} nouveau(x)
+                                </span>
+                            {% endif %}
+                            
+                            <a href="{{ path('chat_conversation', {'trajetId': conversation.trajetId, 'destinataireId': conversation.autreUserId}) }}" 
+                               style="padding: 0.5rem 1rem; background: #2563eb; color: white; border-radius: 4px; text-decoration: none; font-size: 0.875rem; hover: background: #1d4ed8;">
+                                Ouvrir la conversation
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+            <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Informations</h3>
+            <ul style="font-size: 0.875rem; color: #6b7280; margin: 0; padding-left: 1.5rem;">
+                <li>Les conversations sont triées par date du dernier message (plus récent en premier)</li>
+                <li>Le badge rouge indique le nombre de nouveaux messages non lus</li>
+                <li>Cliquez sur "Ouvrir la conversation" pour répondre aux messages</li>
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

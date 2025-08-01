@@ -14,15 +14,31 @@
         {% endblock %}
     </head>
     <body>
-        <nav>
-            <div class="user-status" style="position: absolute; top: 10px; right: 10px;">
-                {% if app.user %}
-                    Bonjour {{ app.user.userIdentifier }} !
-                    <a href="{{ path('app_logout') }}">Déconnexion</a>
-                {% else %}
-                    <a href="{{ path('app_login') }}">Connexion</a>
-                    <a href="{{ path('app_register') }}">Inscription</a>
-                {% endif %}
+        <nav style="background: #2563eb; color: white; padding: 1rem;">
+            <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <a href="{{ path('app_home') }}" style="font-size: 1.25rem; font-weight: bold; color: white; text-decoration: none;">AlloParents</a>
+                    {% if app.user %}
+                        <div style="display: flex; gap: 1rem;">
+                            <a href="{{ path('trajet_rechercher') }}" style="color: white; text-decoration: none; hover: color: #bfdbfe;">Rechercher des trajets</a>
+                            <a href="{{ path('trajet_ajouter') }}" style="color: white; text-decoration: none; hover: color: #bfdbfe;">Créer un trajet</a>
+                            <a href="{{ path('trajet_mes_trajets') }}" style="color: white; text-decoration: none; hover: color: #bfdbfe;">Mes trajets</a>
+                            <a href="{{ path('chat_messages') }}" style="color: white; text-decoration: none; hover: color: #bfdbfe;">Mes messages</a>
+                            {% if is_granted('ROLE_ADMIN') %}
+                                <a href="{{ path('admin_dashboard') }}" style="color: white; text-decoration: none; hover: color: #bfdbfe;">Admin</a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    {% if app.user %}
+                        <span style="color: #bfdbfe;">Bonjour {{ app.user.userIdentifier }} !</span>
+                        <a href="{{ path('app_logout') }}" style="background: #1d4ed8; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; text-decoration: none; hover: background: #1e40af;">Déconnexion</a>
+                    {% else %}
+                        <a href="{{ path('app_login') }}" style="color: white; text-decoration: none; hover: color: #bfdbfe;">Connexion</a>
+                        <a href="{{ path('app_register') }}" style="background: #1d4ed8; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; text-decoration: none; hover: background: #1e40af;">Inscription</a>
+                    {% endif %}
+                </div>
             </div>
         </nav>
         {% block body %}{% endblock %}

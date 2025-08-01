@@ -3,51 +3,51 @@
 {% block title %}Chat - Trajet #{{ trajetId }}{% endblock %}
 
 {% block body %}
-<div class="container mx-auto max-w-4xl mt-8">
-    <div class="bg-white rounded-lg shadow">
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+    <div style="background: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
         <!-- Header -->
-        <div class="bg-blue-600 text-white p-4 rounded-t-lg">
-            <div class="flex justify-between items-center">
+        <div style="background: #2563eb; color: white; padding: 1rem; border-radius: 8px 8px 0 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <h1 class="text-xl font-bold">Chat - Trajet #{{ trajetId }}</h1>
+                    <h1 style="font-size: 1.25rem; font-weight: bold; margin: 0;">Chat - Trajet #{{ trajetId }}</h1>
                     {% if trajet %}
-                        <p class="text-blue-100">{{ trajet.pointDepart }} → {{ trajet.pointArrivee }}</p>
-                        <p class="text-blue-100">{{ trajet.dateDepart|date('d/m/Y') }} à {{ trajet.heureDepart }}</p>
+                        <p style="color: #bfdbfe; margin: 0.25rem 0 0 0;">{{ trajet.pointDepart }} → {{ trajet.pointArrivee }}</p>
+                        <p style="color: #bfdbfe; margin: 0.25rem 0 0 0;">{{ trajet.dateDepart|date('d/m/Y') }} à {{ trajet.heureDepart }}</p>
                     {% endif %}
                 </div>
-                <a href="{{ path('trajet_rechercher') }}" class="px-4 py-2 bg-blue-700 hover:bg-blue-800 rounded">
+                <a href="{{ path('trajet_rechercher') }}" style="background: #1d4ed8; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; hover: background: #1e40af;">
                     ← Retour
                 </a>
             </div>
         </div>
 
         {% if error %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 m-4 rounded">
+            <div style="background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 0.75rem; margin: 1rem; border-radius: 4px;">
                 {{ error|raw }}
             </div>
         {% endif %}
         {% if success %}
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 m-4 rounded">
+            <div style="background: #f0fdf4; border: 1px solid #4ade80; color: #16a34a; padding: 0.75rem; margin: 1rem; border-radius: 4px;">
                 {{ success }}
             </div>
         {% endif %}
 
         <!-- Messages -->
-        <div class="p-4 h-96 overflow-y-auto bg-gray-50" id="messages-container">
+        <div style="padding: 1rem; height: 400px; overflow-y: auto; background: #f9fafb;" id="messages-container">
             {% if messages is empty %}
-                <div class="text-center text-gray-500 py-8">
+                <div style="text-align: center; color: #6b7280; padding: 2rem;">
                     <p>Aucun message pour le moment.</p>
-                    <p class="text-sm">Commencez la conversation !</p>
+                    <p style="font-size: 0.875rem;">Commencez la conversation !</p>
                 </div>
             {% else %}
                 {% for message in messages %}
-                    <div class="mb-4 {% if message.expediteurId == app.user.id %}text-right{% endif %}">
-                        <div class="inline-block max-w-xs lg:max-w-md px-4 py-2 rounded-lg {% if message.expediteurId == app.user.id %}bg-blue-600 text-white{% else %}bg-white border{% endif %}">
-                            <p class="text-sm">{{ message.contenu }}</p>
-                            <p class="text-xs mt-1 {% if message.expediteurId == app.user.id %}text-blue-100{% else %}text-gray-500{% endif %}">
+                    <div style="margin-bottom: 1rem; {% if message.expediteurId == app.user.id %}text-align: right;{% endif %}">
+                        <div style="display: inline-block; max-width: 300px; padding: 0.5rem 1rem; border-radius: 8px; {% if message.expediteurId == app.user.id %}background: #2563eb; color: white;{% else %}background: white; border: 1px solid #e5e7eb;{% endif %}">
+                            <p style="font-size: 0.875rem; margin: 0;">{{ message.contenu }}</p>
+                            <p style="font-size: 0.75rem; margin: 0.25rem 0 0 0; {% if message.expediteurId == app.user.id %}color: #bfdbfe;{% else %}color: #6b7280;{% endif %}">
                                 {{ message.dateEnvoi|date('d/m/Y H:i') }}
                                 {% if message.lu and message.expediteurId == app.user.id %}
-                                    <span class="ml-1">✓</span>
+                                    <span style="margin-left: 0.25rem;">✓</span>
                                 {% endif %}
                             </p>
                         </div>
@@ -57,12 +57,12 @@
         </div>
 
         <!-- Formulaire d'envoi -->
-        <div class="p-4 border-t bg-white">
-            <form method="post" class="flex gap-2">
+        <div style="padding: 1rem; border-top: 1px solid #e5e7eb; background: white;">
+            <form method="post" style="display: flex; gap: 0.5rem;">
                 <input type="text" name="contenu" placeholder="Tapez votre message..." 
-                       class="flex-1 border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                       style="flex: 1; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 0.75rem; outline: none;" 
                        required>
-                <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" style="background: #2563eb; color: white; padding: 0.5rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; hover: background: #1d4ed8;">
                     Envoyer
                 </button>
             </form>
