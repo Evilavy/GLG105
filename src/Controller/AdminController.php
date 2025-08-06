@@ -21,10 +21,11 @@ class AdminController extends AbstractController
     {
         $pendingUsers = $userRepository->findBy(['isApprovedByAdmin' => false]);
         $approvedUsers = $userRepository->findBy(['isApprovedByAdmin' => true]);
-
+        $pendingSuggestions = [];
         return $this->render('admin/dashboard.html.twig', [
             'pendingUsers' => $pendingUsers,
             'approvedUsers' => $approvedUsers,
+            'pendingSuggestions' => $pendingSuggestions,
         ]);
     }
 

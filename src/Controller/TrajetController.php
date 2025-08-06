@@ -26,29 +26,10 @@ class TrajetController extends AbstractController
     {
         $error = null;
         $success = null;
+        $ecoles = [];
         $enfants = [];
         $voitures = [];
-        $ecoles = [];
-        
-        // Récupérer la liste des enfants de l'utilisateur connecté
-        try {
-            $response = $this->httpClient->request('GET', $this->javaApiUrl . '/enfants/user/' . $this->getUser()->getId());
-            if ($response->getStatusCode() === 200) {
-                $enfants = $response->toArray();
-            }
-        } catch (\Exception $e) {
-            $error = "Erreur lors de la récupération des enfants: " . $e->getMessage();
-        }
-
-        // Récupérer la liste des voitures de l'utilisateur connecté
-        try {
-            $response = $this->httpClient->request('GET', $this->javaApiUrl . '/voitures/user/' . $this->getUser()->getId());
-            if ($response->getStatusCode() === 200) {
-                $voitures = $response->toArray();
-            }
-        } catch (\Exception $e) {
-            $error = "Erreur lors de la récupération des voitures: " . $e->getMessage();
-        }
+        $userId = $this->getUser()->getId();
 
         // Récupérer la liste des écoles
         try {
@@ -60,61 +41,91 @@ class TrajetController extends AbstractController
             $error = "Erreur lors de la récupération des écoles: " . $e->getMessage();
         }
 
+        // Récupérer les enfants validés de l'utilisateur
+        try {
+            $response = $this->httpClient->request('GET', $this->javaApiUrl . '/enfants/user/' . $userId);
+            if ($response->getStatusCode() === 200) {
+                $tousEnfants = $response->toArray();
+                // Filtrer seulement les enfants validés par l'admin
+                $enfants = array_filter($tousEnfants, function($enfant) {
+                    return $enfant['valideParAdmin'] === true;
+                });
+            }
+        } catch (\Exception $e) {
+            $error = "Erreur lors de la récupération des enfants: " . $e->getMessage();
+        }
+
+        // Récupérer les voitures de l'utilisateur
+        try {
+            $response = $this->httpClient->request('GET', $this->javaApiUrl . '/voitures/user/' . $userId);
+            if ($response->getStatusCode() === 200) {
+                $voitures = $response->toArray();
+            }
+        } catch (\Exception $e) {
+            $error = "Erreur lors de la récupération des voitures: " . $e->getMessage();
+        }
+
         if ($request->isMethod('POST')) {
-            $enfantsIds = $request->request->all('enfants');
-            $enfantsIds = array_filter($enfantsIds, function($id) { return !empty($id); });
-            
-            // Récupérer les informations de l'école sélectionnée
-            $ecoleId = $request->request->get('ecoleArrivee');
-            $ecoleArrivee = null;
-            if ($ecoleId) {
-                foreach ($ecoles as $ecole) {
-                    if ($ecole['id'] == $ecoleId) {
-                        $ecoleArrivee = $ecole['nom'] . ' - ' . $ecole['ville'] . ' (' . $ecole['codePostal'] . ')';
-                        break;
-                    }
+            $pointDepart = $request->request->get('pointDepart');
+            $ecoleArriveeId = $request->request->get('ecoleArrivee');
+            $pointArrivee = null;
+            foreach ($ecoles as $ecole) {
+                if ($ecole['id'] == $ecoleArriveeId) {
+                    $pointArrivee = $ecole['nom'] . ' - ' . $ecole['ville'] . ' (' . $ecole['codePostal'] . ')';
+                    break;
                 }
             }
-            
-            $data = [
-                'pointDepart' => $request->request->get('pointDepart'),
-                'pointArrivee' => $ecoleArrivee,
-                'dateDepart' => $request->request->get('dateDepart'),
-                'heureDepart' => $request->request->get('heureDepart'),
-                'dateArrivee' => $request->request->get('dateArrivee'),
-                'heureArrivee' => $request->request->get('heureArrivee'),
-                'nombrePlaces' => (int) $request->request->get('nombrePlaces'),
-                'conducteurId' => $this->getUser()->getId(),
-                'voitureId' => (int) $request->request->get('voitureId'),
-                'description' => $request->request->get('description'),
-                'prix' => (float) $request->request->get('prix'),
-                'enfantsIds' => array_map('intval', $enfantsIds)
-            ];
-            
-            try {
-                $response = $this->httpClient->request('POST', $this->javaApiUrl . '/trajets', [
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                    ],
-                    'json' => $data
-                ]);
-                
-                if ($response->getStatusCode() === 201) {
-                    $success = 'Trajet créé avec succès !';
-                } else {
-                    $error = $response->getContent(false);
+            $dateDepart = $request->request->get('dateDepart');
+            $heureDepart = $request->request->get('heureDepart');
+            $dateArrivee = $request->request->get('dateArrivee');
+            $heureArrivee = $request->request->get('heureArrivee');
+            $nombrePlaces = $request->request->get('nombrePlaces');
+            $enfantsIds = $request->request->all('enfants');
+            $voitureId = $request->request->get('voitureId');
+            $pointsCout = $request->request->get('pointsCout', 5); // Coût par défaut de 5 points
+
+            if ($pointDepart && $pointArrivee && $dateDepart && $heureDepart && $dateArrivee && $heureArrivee && $nombrePlaces && $voitureId) {
+                $data = [
+                    'pointDepart' => $pointDepart,
+                    'pointArrivee' => $pointArrivee,
+                    'dateDepart' => $dateDepart,
+                    'heureDepart' => $heureDepart,
+                    'dateArrivee' => $dateArrivee,
+                    'heureArrivee' => $heureArrivee,
+                    'nombrePlaces' => (int)$nombrePlaces,
+                    'conducteurId' => $userId,
+                    'voitureId' => (int)$voitureId,
+                    'enfantsIds' => array_map('intval', $enfantsIds),
+                    'pointsCout' => (int)$pointsCout,
+                ];
+
+                try {
+                    $response = $this->httpClient->request('POST', $this->javaApiUrl . '/trajets', [
+                        'headers' => [
+                            'Content-Type' => 'application/json',
+                        ],
+                        'json' => $data
+                    ]);
+
+                    if ($response->getStatusCode() === 201) {
+                        $success = 'Trajet créé avec succès !';
+                    } else {
+                        $error = $response->getContent(false);
+                    }
+                } catch (\Exception $e) {
+                    $error = $e->getMessage();
                 }
-            } catch (\Exception $e) {
-                $error = $e->getMessage();
+            } else {
+                $error = 'Tous les champs sont obligatoires';
             }
         }
-        
+
         return $this->render('trajet/ajouter.html.twig', [
-            'error' => $error,
-            'success' => $success,
+            'ecoles' => $ecoles,
             'enfants' => $enfants,
             'voitures' => $voitures,
-            'ecoles' => $ecoles,
+            'error' => $error,
+            'success' => $success,
         ]);
     }
 
@@ -144,11 +155,15 @@ class TrajetController extends AbstractController
                 if ($response->getStatusCode() === 200) {
                     $tousTrajets = $response->toArray();
                     
-                    // Filtrer les trajets par école et date
+                    // Filtrer les trajets par école, date et conducteur différent
+                    $userId = $this->getUser()->getId();
                     foreach ($tousTrajets as $trajet) {
-                        if ($trajet['statut'] === 'disponible' && 
+                        if (
+                            $trajet['statut'] === 'disponible' &&
                             $trajet['dateDepart'] === $dateRecherche &&
-                            strpos($trajet['pointArrivee'], $ecoles[$ecoleId - 1]['nom']) !== false) {
+                            strpos($trajet['pointArrivee'], $ecoles[$ecoleId - 1]['nom']) !== false &&
+                            isset($trajet['conducteurId']) && $trajet['conducteurId'] != $userId
+                        ) {
                             $trajets[] = $trajet;
                         }
                     }

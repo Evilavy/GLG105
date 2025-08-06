@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Enfants en attente de validation{% endblock %}
+
+{% block body %}
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 1.5rem; font-weight: bold; margin: 0;">Enfants en attente de validation</h1>
+        <a href="{{ path('admin_dashboard') }}" style="background: #6b7280; color: white; padding: 0.5rem 1rem; border-radius: 4px; text-decoration: none; hover: background: #4b5563;">
+            ← Retour au dashboard
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div style="background: #d1fae5; border: 1px solid #10b981; color: #065f46; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div style="background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% if error %}
+        <div style="background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ error|raw }}
+        </div>
+    {% endif %}
+
+    {% if enfants is empty %}
+        <div style="background: #f0f9ff; border: 1px solid #0ea5e9; color: #0369a1; padding: 0.75rem; border-radius: 4px;">
+            <p>Aucun enfant en attente de validation.</p>
+        </div>
+    {% else %}
+        <div style="display: grid; gap: 1rem;">
+            {% for enfant in enfants %}
+                <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="flex: 1;">
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                                <h3 style="font-weight: 600; margin: 0; font-size: 1.25rem;">
+                                    {{ enfant.prenom }} {{ enfant.nom }}
+                                </h3>
+                                <span style="background: #fef3c7; color: #92400e; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                                    En attente
+                                </span>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                                <div>
+                                    <strong style="color: #374151;">Âge:</strong>
+                                    <span style="color: #6b7280;">{{ enfant.age }} ans (né le {{ enfant.dateNaissance|date('d/m/Y') }})</span>
+                                </div>
+                                <div>
+                                    <strong style="color: #374151;">École ID:</strong>
+                                    <span style="color: #6b7280;">{{ enfant.ecoleId }}</span>
+                                </div>
+                                <div>
+                                    <strong style="color: #374151;">Parent ID:</strong>
+                                    <span style="color: #6b7280;">{{ enfant.userId }}</span>
+                                </div>
+                                <div>
+                                    <strong style="color: #374151;">Date de création:</strong>
+                                    <span style="color: #6b7280;">{{ enfant.dateCreation|date('d/m/Y H:i') }}</span>
+                                </div>
+                                <div>
+                                    <strong style="color: #374151;">Sexe:</strong>
+                                    <span style="color: #6b7280;">{{ enfant.sexe == 'M' ? 'Masculin' : (enfant.sexe == 'F' ? 'Féminin' : enfant.sexe) }}</span>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 1rem;">
+                                <strong style="color: #374151;">Certificat de scolarité:</strong>
+                                <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px; padding: 0.75rem; margin-top: 0.5rem;">
+                                    {% if enfant.certificatScolarite %}
+                                        <a href="http://localhost:8080/demo-api/api/enfants/{{ enfant.id }}/certificat" target="_blank" style="color: #2563eb; text-decoration: underline; font-weight: 500;">
+                                            Voir / Télécharger le certificat PDF
+                                        </a>
+                                    {% else %}
+                                        <span style="color: #ef4444;">Aucun certificat disponible</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                            <a href="{{ path('admin_enfant_view', {'id': enfant.id}) }}" 
+                               style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border-radius: 4px; text-decoration: none; font-size: 0.875rem; hover: background: #2563eb;">
+                                Voir détails
+                            </a>
+                            
+                            <form method="POST" action="{{ path('admin_enfant_validate', {'id': enfant.id}) }}" style="margin: 0;">
+                                <button type="submit" 
+                                        style="padding: 0.5rem 1rem; background: #10b981; color: white; border: none; border-radius: 4px; font-size: 0.875rem; cursor: pointer; hover: background: #059669;"
+                                        onclick="return confirm('Êtes-vous sûr de vouloir valider cet enfant ?')">
+                                    Valider
+                                </button>
+                            </form>
+                            
+                            <form method="POST" action="{{ path('admin_enfant_reject', {'id': enfant.id}) }}" style="margin: 0;">
+                                <button type="submit" 
+                                        style="padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 4px; font-size: 0.875rem; cursor: pointer; hover: background: #dc2626;"
+                                        onclick="return confirm('Êtes-vous sûr de vouloir rejeter cet enfant ?')">
+                                    Rejeter
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+            <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Informations</h3>
+            <ul style="font-size: 0.875rem; color: #6b7280; margin: 0; padding-left: 1.5rem;">
+                <li>Les enfants en attente ne peuvent pas être utilisés dans les trajets</li>
+                <li>Seuls les enfants validés par un admin peuvent être sélectionnés</li>
+                <li>Le certificat de scolarité est affiché en aperçu (base64)</li>
+            </ul>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

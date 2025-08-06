@@ -11,6 +11,24 @@
         {% block javascripts %}
             {{ encore_entry_script_tags('app') }}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
+            {% if app.user %}
+            <script>
+                // Charger les points de l'utilisateur
+                fetch('{{ path('user_points') }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.points !== undefined) {
+                            document.getElementById('points-display').textContent = data.points;
+                        } else {
+                            document.getElementById('points-display').textContent = '0';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors du chargement des points:', error);
+                        document.getElementById('points-display').textContent = '0';
+                    });
+            </script>
+            {% endif %}
         {% endblock %}
     </head>
     <body>
@@ -33,6 +51,9 @@
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     {% if app.user %}
                         <span style="color: #bfdbfe;">Bonjour {{ app.user.userIdentifier }} !</span>
+                        <span id="user-points" style="background: #16a34a; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-weight: bold;">
+                            <span id="points-display">Chargement...</span> points
+                        </span>
                         <a href="{{ path('app_logout') }}" style="background: #1d4ed8; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; text-decoration: none; hover: background: #1e40af;">Déconnexion</a>
                     {% else %}
                         <a href="{{ path('app_login') }}" style="color: white; text-decoration: none; hover: color: #bfdbfe;">Connexion</a>

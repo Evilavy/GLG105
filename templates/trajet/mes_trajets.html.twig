@@ -54,8 +54,8 @@
                                     <p><strong>Places disponibles :</strong> 
                                         <span style="font-weight: bold; color: #16a34a;">{{ trajet.nombrePlaces }}</span>
                                     </p>
-                                    <p><strong>Prix :</strong> 
-                                        <span style="font-weight: bold; color: #2563eb;">{{ trajet.prix }}€</span>
+                                    <p><strong>Coût en points :</strong> 
+                                        <span style="font-weight: bold; color: #2563eb;">{{ trajet.pointsCout }} points</span>
                                     </p>
                                     <p><strong>Heure d'arrivée :</strong> {{ trajet.heureArrivee }}</p>
                                     {% if trajet.description %}
@@ -74,6 +74,43 @@
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Carte du trajet -->
+                        <div style="margin: 1rem 0;">
+                            <div id="map-{{ trajet.id }}" style="height: 300px; width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;"></div>
+                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                            <script>
+                            (async function() {
+                                const mapId = 'map-{{ trajet.id }}';
+                                const pointDepart = `{{ trajet.pointDepart|e('js') }}`;
+                                const pointArrivee = `{{ trajet.pointArrivee|e('js') }}`;
+                                async function geocode(address) {
+                                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+                                    const response = await fetch(url);
+                                    const data = await response.json();
+                                    if (data.length > 0) {
+                                        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                                    }
+                                    return null;
+                                }
+                                const departCoords = await geocode(pointDepart);
+                                const arriveeCoords = await geocode(pointArrivee);
+                                if (departCoords && arriveeCoords) {
+                                    const map = L.map(mapId).setView(departCoords, 12);
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '© OpenStreetMap contributors'
+                                    }).addTo(map);
+                                    L.marker(departCoords).addTo(map).bindPopup('Départ').openPopup();
+                                    L.marker(arriveeCoords).addTo(map).bindPopup('Arrivée');
+                                    const route = L.polyline([departCoords, arriveeCoords], {color: 'blue'}).addTo(map);
+                                    map.fitBounds(route.getBounds());
+                                } else {
+                                    document.getElementById(mapId).innerHTML = "<p style='color:red'>Impossible de géocoder l'une des adresses.</p>";
+                                }
+                            })();
+                            </script>
                         </div>
 
                         <!-- Conversations -->

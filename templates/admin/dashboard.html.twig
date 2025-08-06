@@ -3,278 +3,104 @@
 {% block title %}Dashboard Admin{% endblock %}
 
 {% block body %}
-<div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-gray-900">Dashboard Administrateur</h1>
-            <p class="mt-2 text-gray-600">Gérez les utilisateurs et les demandes d'inscription</p>
-        </div>
+<div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+    <h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">Dashboard Administrateur</h1>
 
-        <!-- Success messages -->
-        {% for message in app.flashes('success') %}
-            <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 text-green-500 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="text-green-700 text-sm font-medium">{{ message }}</span>
-                </div>
-            </div>
-        {% endfor %}
-
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">En attente</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ pendingUsers|length }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Approuvés</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ approvedUsers|length }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total</p>
-                        <p class="text-2xl font-semibold text-gray-900">{{ (pendingUsers|length) + (approvedUsers|length) }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Aujourd'hui</p>
-                        <p class="text-2xl font-semibold text-gray-900">+3</p>
-                    </div>
-                </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+        <!-- Gestion des utilisateurs -->
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Gestion des utilisateurs</h2>
+            <p style="color: #6b7280; margin-bottom: 1rem;">Gérer les inscriptions et les comptes utilisateurs</p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="{{ path('admin_pending_users') }}" 
+                   style="padding: 0.75rem 1rem; background: #2563eb; color: white; border-radius: 4px; text-decoration: none; text-align: center; hover: background: #1d4ed8;">
+                    Utilisateurs en attente ({{ pendingUsers|length }})
+                </a>
+                <a href="{{ path('admin_dashboard') }}" 
+                   style="padding: 0.75rem 1rem; background: #6b7280; color: white; border-radius: 4px; text-decoration: none; text-align: center; hover: background: #4b5563;">
+                    Tous les utilisateurs
+                </a>
             </div>
         </div>
 
-        <!-- Main Content Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <!-- Pending Users -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">Utilisateurs en attente</h2>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                            {{ pendingUsers|length }}
-                        </span>
-                    </div>
-                </div>
-                <div class="p-6">
-                    {% if pendingUsers is empty %}
-                        <div class="text-center py-8">
-                            <svg style="height:20px" class="mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                            <p class="mt-2 text-sm text-gray-500">Aucun utilisateur en attente</p>
-                        </div>
-                    {% else %}
-                        <div class="space-y-4">
-                            {% for user in pendingUsers %}
-                                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-center">
-                                                <div class="flex-shrink-0">
-                                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                                                        <span class="text-sm font-medium text-blue-600">
-                                                            {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="ml-3 flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-gray-900 truncate">
-                                                        {{ user.prenom }} {{ user.nom }}
-                                                    </p>
-                                                    <p class="text-sm text-gray-500 truncate">{{ user.email }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="mt-2">
-                                                <p class="text-xs text-gray-500">
-                                                    <span class="font-medium">Rôle:</span> {{ user.role }}
-                                                    {% if user.roleAutre %}
-                                                        ({{ user.roleAutre }})
-                                                    {% endif %}
-                                                </p>
-                                                <p class="text-xs text-gray-500">
-                                                    <span class="font-medium">Inscrit le:</span> {{ user.createdAt|date('d/m/Y H:i') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3 flex flex-wrap gap-2">
-                                        <a href="{{ path('admin_view_user', {id: user.id}) }}" 
-                                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
-                                            <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                            Voir
-                                        </a>
-                                        <form method="post" action="{{ path('admin_approve_user', {id: user.id}) }}" class="inline">
-                                            <button type="submit" 
-                                                    onclick="return confirm('Approuver cet utilisateur ?')"
-                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors duration-200">
-                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                                </svg>
-                                                Approuver
-                                            </button>
-                                        </form>
-                                        <form method="post" action="{{ path('admin_reject_user', {id: user.id}) }}" class="inline">
-                                            <button type="submit" 
-                                                    onclick="return confirm('Rejeter cet utilisateur ? Cette action est irréversible.')"
-                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-lg text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200">
-                                                <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                </svg>
-                                                Rejeter
-                                            </button>
-                                        </form>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Approved Users -->
-            <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div class="px-6 py-4 border-b border-gray-200">
-                    <div class="flex items-center justify-between">
-                        <h2 class="text-lg font-semibold text-gray-900">Utilisateurs approuvés</h2>
-                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {{ approvedUsers|length }}
-                        </span>
-                    </div>
-                </div>
-                <div class="p-6">
-                    {% if approvedUsers is empty %}
-                        <div class="text-center py-8">
-                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                            </svg>
-                            <p class="mt-2 text-sm text-gray-500">Aucun utilisateur approuvé</p>
-                        </div>
-                    {% else %}
-                        <div class="space-y-4">
-                            {% for user in approvedUsers %}
-                                <div class="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200">
-                                    <div class="flex items-start justify-between">
-                                        <div class="flex-1 min-w-0">
-                                            <div class="flex items-center">
-                                                <div class="flex-shrink-0">
-                                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                                                        <span class="text-sm font-medium text-green-600">
-                                                            {{ user.prenom|first|upper }}{{ user.nom|first|upper }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div class="ml-3 flex-1 min-w-0">
-                                                    <p class="text-sm font-medium text-gray-900 truncate">
-                                                        {{ user.prenom }} {{ user.nom }}
-                                                    </p>
-                                                    <p class="text-sm text-gray-500 truncate">{{ user.email }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="mt-2">
-                                                <p class="text-xs text-gray-500">
-                                                    <span class="font-medium">Rôle:</span> {{ user.role }}
-                                                    {% if user.roleAutre %}
-                                                        ({{ user.roleAutre }})
-                                                    {% endif %}
-                                                </p>
-                                                <p class="text-xs text-gray-500">
-                                                    <span class="font-medium">Approuvé le:</span> {{ user.approvedAt|date('d/m/Y H:i') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3">
-                                        <a href="{{ path('admin_view_user', {id: user.id}) }}" 
-                                           class="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200">
-                                            <svg style="height:20px" class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                            </svg>
-                                            Voir le profil
-                                        </a>
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
+        <!-- Gestion des écoles -->
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Gestion des écoles</h2>
+            <p style="color: #6b7280; margin-bottom: 1rem;">Gérer les écoles et les suggestions</p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="{{ path('admin_ecole_suggestion_list') }}" 
+                   style="padding: 0.75rem 1rem; background: #2563eb; color: white; border-radius: 4px; text-decoration: none; text-align: center; hover: background: #1d4ed8;">
+                    Suggestions d'écoles ({{ pendingSuggestions|length }})
+                </a>
+                <a href="{{ path('admin_ecole_ajouter') }}"style="padding: 0.75rem 1rem; background: #6b7280; color: white; border-radius: 4px; text-decoration: none; text-align: center; hover: background: #4b5563;">Gérer les écoles</a>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-900">Actions rapides</h2>
-            </div>
-            <div class="p-6">
-                <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="{{ path('admin_pending_users') }}" 
-                       class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
-                        </svg>
-                        Gérer les utilisateurs en attente
-                    </a>
-                    <a href="{{ path('app_register') }}" 
-                       class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-sm font-medium rounded-xl text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                        </svg>
-                        Créer un utilisateur
-                    </a>
-                </div>
+        <!-- Gestion des enfants -->
+        <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Gestion des enfants</h2>
+            <p style="color: #6b7280; margin-bottom: 1rem;">Valider les certificats de scolarité</p>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <a href="{{ path('admin_enfants_pending') }}" 
+                   style="padding: 0.75rem 1rem; background: #2563eb; color: white; border-radius: 4px; text-decoration: none; text-align: center; hover: background: #1d4ed8;">
+                    Enfants en attente de validation
+                </a>
             </div>
         </div>
     </div>
+
+    {% if pendingUsers is not empty %}
+        <div style="margin-top: 2rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Utilisateurs en attente d'approbation</h2>
+            <div style="display: grid; gap: 1rem;">
+                {% for user in pendingUsers %}
+                    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="font-weight: 600; margin: 0 0 0.25rem 0;">{{ user.prenom }} {{ user.nom }}</h3>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">{{ user.email }}</p>
+                                <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.875rem;">
+                                    Rôle: {{ user.role }}{% if user.roleAutre %} ({{ user.roleAutre }}){% endif %}
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{{ path('admin_view_user', {'id': user.id}) }}" 
+                                   style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border-radius: 4px; text-decoration: none; font-size: 0.875rem; hover: background: #2563eb;">
+                                    Voir détails
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% if pendingSuggestions is not empty %}
+        <div style="margin-top: 2rem;">
+            <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Suggestions d'écoles en attente</h2>
+            <div style="display: grid; gap: 1rem;">
+                {% for suggestion in pendingSuggestions %}
+                    <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="font-weight: 600; margin: 0 0 0.25rem 0;">{{ suggestion.nom }}</h3>
+                                <p style="color: #6b7280; margin: 0; font-size: 0.875rem;">{{ suggestion.adresse }}, {{ suggestion.ville }} {{ suggestion.codePostal }}</p>
+                                <p style="color: #6b7280; margin: 0.25rem 0 0 0; font-size: 0.875rem;">
+                                    Proposé par: {{ suggestion.createdBy.email }}
+                                </p>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <a href="{{ path('admin_ecole_suggestion_list') }}" 
+                                   style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border-radius: 4px; text-decoration: none; font-size: 0.875rem; hover: background: #2563eb;">
+                                    Gérer
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

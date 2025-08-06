@@ -6,6 +6,24 @@
 <div style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
     <h1 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 1.5rem;">Rechercher des trajets disponibles</h1>
 
+    {% for message in app.flashes('success') %}
+        <div style="background: #dcfce7; border: 1px solid #16a34a; color: #166534; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('error') %}
+        <div style="background: #fee2e2; border: 1px solid #dc2626; color: #991b1b; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+    
+    {% for message in app.flashes('warning') %}
+        <div style="background: #fef3c7; border: 1px solid #d97706; color: #92400e; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
     {% if error %}
         <div style="background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 0.75rem; margin-bottom: 1rem; border-radius: 4px;">
             {{ error|raw }}
@@ -68,8 +86,8 @@
                                     <p><strong>Places disponibles :</strong> 
                                         <span style="font-weight: bold; color: #16a34a;">{{ trajet.nombrePlaces }}</span>
                                     </p>
-                                    <p><strong>Prix :</strong> 
-                                        <span style="font-weight: bold; color: #2563eb;">{{ trajet.prix }}€</span>
+                                    <p><strong>Coût en points :</strong> 
+                                        <span style="font-weight: bold; color: #2563eb;">{{ trajet.pointsCout }} points</span>
                                     </p>
                                     <p><strong>Statut :</strong> 
                                         <span style="padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; 
@@ -96,9 +114,11 @@
                         {% endif %}
                         
                         <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                            <button style="padding: 0.5rem 1rem; border-radius: 4px; background: #16a34a; color: white; border: none; cursor: pointer; font-size: 0.875rem; hover: background: #15803d;">
-                                Réserver
-                            </button>
+                            <form method="post" action="{{ path('reservation_trajet', {'id': trajet.id}) }}" style="display: inline;">
+                                <button type="submit" style="padding: 0.5rem 1rem; border-radius: 4px; background: #16a34a; color: white; border: none; cursor: pointer; font-size: 0.875rem; hover: background: #15803d;" onclick="return confirm('Êtes-vous sûr de vouloir réserver ce trajet ? Cela vous coûtera {{ trajet.pointsCout }} points.')">
+                                    Réserver ({{ trajet.pointsCout }} points)
+                                </button>
+                            </form>
                             <a href="{{ path('chat_conversation', {'trajetId': trajet.id, 'destinataireId': trajet.conducteurId}) }}" 
                                style="padding: 0.5rem 1rem; border-radius: 4px; background: #2563eb; color: white; text-decoration: none; font-size: 0.875rem; display: flex; align-items: center; gap: 0.25rem; hover: background: #1d4ed8;">
                                 <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -106,6 +126,42 @@
                                 </svg>
                                 Contacter le conducteur
                             </a>
+                        </div>
+                        <!-- Carte du trajet -->
+                        <div style="margin: 1rem 0;">
+                            <div id="map-{{ trajet.id }}" style="height: 300px; width: 100%; border-radius: 8px; border: 1px solid #e5e7eb;"></div>
+                            <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+                            <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+                            <script>
+                            (async function() {
+                                const mapId = 'map-{{ trajet.id }}';
+                                const pointDepart = `{{ trajet.pointDepart|e('js') }}`;
+                                const pointArrivee = `{{ trajet.pointArrivee|e('js') }}`;
+                                async function geocode(address) {
+                                    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+                                    const response = await fetch(url);
+                                    const data = await response.json();
+                                    if (data.length > 0) {
+                                        return [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+                                    }
+                                    return null;
+                                }
+                                const departCoords = await geocode(pointDepart);
+                                const arriveeCoords = await geocode(pointArrivee);
+                                if (departCoords && arriveeCoords) {
+                                    const map = L.map(mapId).setView(departCoords, 12);
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        attribution: '© OpenStreetMap contributors'
+                                    }).addTo(map);
+                                    L.marker(departCoords).addTo(map).bindPopup('Départ').openPopup();
+                                    L.marker(arriveeCoords).addTo(map).bindPopup('Arrivée');
+                                    const route = L.polyline([departCoords, arriveeCoords], {color: 'blue'}).addTo(map);
+                                    map.fitBounds(route.getBounds());
+                                } else {
+                                    document.getElementById(mapId).innerHTML = "<p style='color:red'>Impossible de géocoder l'une des adresses.</p>";
+                                }
+                            })();
+                            </script>
                         </div>
                     </div>
                 {% endfor %}
