@@ -55,9 +55,9 @@ class TrajetController extends AbstractController
             $error = "Erreur lors de la récupération des enfants: " . $e->getMessage();
         }
 
-        // Récupérer les voitures de l'utilisateur
+        // Récupérer les voitures de l'utilisateur via l'API Symfony
         try {
-            $response = $this->httpClient->request('GET', $this->javaApiUrl . '/voitures/user/' . $userId);
+            $response = $this->httpClient->request('GET', $this->getParameter('app.base_url') . '/voiture/api/voitures/user/' . $userId);
             if ($response->getStatusCode() === 200) {
                 $voitures = $response->toArray();
             }

@@ -2,58 +2,137 @@
 
 namespace App\Controller;
 
+use App\Entity\Voiture;
+use App\Repository\VoitureRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/voiture')]
-#[IsGranted('ROLE_USER')]
 class VoitureController extends AbstractController
 {
-    private $httpClient;
-    private $javaApiUrl = 'http://localhost:8080/demo-api/api/voitures';
-
-    public function __construct(HttpClientInterface $httpClient)
+    #[Route('/', name: 'voiture_index', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function index(VoitureRepository $voitureRepository): Response
     {
-        $this->httpClient = $httpClient;
+        $user = $this->getUser();
+        $voitures = $voitureRepository->findBy(['userId' => $user->getId()]);
+
+        return $this->render('voiture/index.html.twig', [
+            'voitures' => $voitures,
+        ]);
     }
 
     #[Route('/ajouter', name: 'voiture_ajouter', methods: ['GET', 'POST'])]
-    public function ajouter(Request $request): Response
+    #[IsGranted('ROLE_USER')]
+    public function ajouter(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $error = null;
-        $success = null;
         if ($request->isMethod('POST')) {
-            $data = [
-                'marque' => $request->request->get('marque'),
-                'modele' => $request->request->get('modele'),
-                'couleur' => $request->request->get('couleur'),
-                'immatriculation' => $request->request->get('immatriculation'),
-                'nombrePlaces' => (int) $request->request->get('nombrePlaces'),
-                'userId' => $this->getUser()->getId(),
-            ];
-            try {
-                $response = $this->httpClient->request('POST', $this->javaApiUrl, [
-                    'headers' => [
-                        'Content-Type' => 'application/json',
-                    ],
-                    'json' => $data
-                ]);
-                if ($response->getStatusCode() === 201) {
-                    $success = 'Voiture ajoutée avec succès !';
-                } else {
-                    $error = $response->getContent(false);
-                }
-            } catch (\Exception $e) {
-                $error = $e->getMessage();
+            $marque = $request->request->get('marque');
+            $modele = $request->request->get('modele');
+            $couleur = $request->request->get('couleur');
+            $immatriculation = $request->request->get('immatriculation');
+            $nombrePlaces = (int) $request->request->get('nombrePlaces');
+
+            // Validation
+            if (empty($marque) || empty($modele) || empty($couleur) || empty($immatriculation) || $nombrePlaces <= 0) {
+                $this->addFlash('error', 'Tous les champs sont obligatoires et le nombre de places doit être supérieur à 0');
+                return $this->redirectToRoute('voiture_ajouter');
             }
+
+            $voiture = new Voiture();
+            $voiture->setMarque($marque);
+            $voiture->setModele($modele);
+            $voiture->setCouleur($couleur);
+            $voiture->setImmatriculation($immatriculation);
+            $voiture->setNombrePlaces($nombrePlaces);
+            $voiture->setUserId($this->getUser()->getId());
+
+            $entityManager->persist($voiture);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Voiture ajoutée avec succès !');
+            return $this->redirectToRoute('voiture_index');
         }
-        return $this->render('voiture/ajouter.html.twig', [
-            'error' => $error,
-            'success' => $success,
+
+        return $this->render('voiture/ajouter.html.twig');
+    }
+
+    #[Route('/{id}/modifier', name: 'voiture_modifier', methods: ['GET', 'POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function modifier(Request $request, Voiture $voiture, EntityManagerInterface $entityManager): Response
+    {
+        // Vérifier que l'utilisateur est propriétaire de la voiture
+        if ($voiture->getUserId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas modifier cette voiture');
+        }
+
+        if ($request->isMethod('POST')) {
+            $marque = $request->request->get('marque');
+            $modele = $request->request->get('modele');
+            $couleur = $request->request->get('couleur');
+            $immatriculation = $request->request->get('immatriculation');
+            $nombrePlaces = (int) $request->request->get('nombrePlaces');
+
+            if (empty($marque) || empty($modele) || empty($couleur) || empty($immatriculation) || $nombrePlaces <= 0) {
+                $this->addFlash('error', 'Tous les champs sont obligatoires et le nombre de places doit être supérieur à 0');
+                return $this->redirectToRoute('voiture_modifier', ['id' => $voiture->getId()]);
+            }
+
+            $voiture->setMarque($marque);
+            $voiture->setModele($modele);
+            $voiture->setCouleur($couleur);
+            $voiture->setImmatriculation($immatriculation);
+            $voiture->setNombrePlaces($nombrePlaces);
+
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Voiture modifiée avec succès !');
+            return $this->redirectToRoute('voiture_index');
+        }
+
+        return $this->render('voiture/modifier.html.twig', [
+            'voiture' => $voiture,
         ]);
+    }
+
+    #[Route('/{id}/supprimer', name: 'voiture_supprimer', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function supprimer(Voiture $voiture, EntityManagerInterface $entityManager): Response
+    {
+        // Vérifier que l'utilisateur est propriétaire de la voiture
+        if ($voiture->getUserId() !== $this->getUser()->getId()) {
+            throw $this->createAccessDeniedException('Vous ne pouvez pas supprimer cette voiture');
+        }
+
+        $entityManager->remove($voiture);
+        $entityManager->flush();
+
+        $this->addFlash('success', 'Voiture supprimée avec succès !');
+        return $this->redirectToRoute('voiture_index');
+    }
+
+    #[Route('/api/voitures/user/{userId}', name: 'api_voitures_user', methods: ['GET'])]
+    public function getVoituresByUser(int $userId, VoitureRepository $voitureRepository): Response
+    {
+        $voitures = $voitureRepository->findBy(['userId' => $userId]);
+        
+        $data = [];
+        foreach ($voitures as $voiture) {
+            $data[] = [
+                'id' => $voiture->getId(),
+                'marque' => $voiture->getMarque(),
+                'modele' => $voiture->getModele(),
+                'couleur' => $voiture->getCouleur(),
+                'immatriculation' => $voiture->getImmatriculation(),
+                'nombrePlaces' => $voiture->getNombrePlaces(),
+                'userId' => $voiture->getUserId(),
+            ];
+        }
+        
+        return $this->json($data);
     }
 } 

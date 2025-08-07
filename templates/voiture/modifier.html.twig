@@ -1,11 +1,11 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Ajouter une voiture{% endblock %}
+{% block title %}Modifier la voiture{% endblock %}
 
 {% block body %}
 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
     <div style="margin-bottom: 30px;">
-        <h1 style="color: #333; margin-bottom: 10px;">Ajouter une voiture</h1>
+        <h1 style="color: #333; margin-bottom: 10px;">Modifier la voiture</h1>
         <a href="{{ path('voiture_index') }}" style="color: #007bff; text-decoration: none;">← Retour à mes voitures</a>
     </div>
 
@@ -19,35 +19,35 @@
         <form method="post">
             <div style="margin-bottom: 20px;">
                 <label for="marque" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">Marque *</label>
-                <input type="text" id="marque" name="marque" required 
+                <input type="text" id="marque" name="marque" value="{{ voiture.marque }}" required 
                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px;"
                        placeholder="Ex: Renault, Peugeot, Citroën...">
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label for="modele" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">Modèle *</label>
-                <input type="text" id="modele" name="modele" required 
+                <input type="text" id="modele" name="modele" value="{{ voiture.modele }}" required 
                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px;"
                        placeholder="Ex: Clio, 208, C3...">
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label for="couleur" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">Couleur *</label>
-                <input type="text" id="couleur" name="couleur" required 
+                <input type="text" id="couleur" name="couleur" value="{{ voiture.couleur }}" required 
                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px;"
                        placeholder="Ex: Blanc, Bleu, Rouge...">
             </div>
 
             <div style="margin-bottom: 20px;">
                 <label for="immatriculation" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">Immatriculation *</label>
-                <input type="text" id="immatriculation" name="immatriculation" required 
+                <input type="text" id="immatriculation" name="immatriculation" value="{{ voiture.immatriculation }}" required 
                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px; font-family: monospace;"
                        placeholder="Ex: AB-123-CD">
             </div>
 
             <div style="margin-bottom: 30px;">
                 <label for="nombrePlaces" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">Nombre de places *</label>
-                <input type="number" id="nombrePlaces" name="nombrePlaces" min="1" max="9" required 
+                <input type="number" id="nombrePlaces" name="nombrePlaces" value="{{ voiture.nombrePlaces }}" min="1" max="9" required 
                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px;"
                        placeholder="Ex: 5">
                 <small style="color: #6c757d; font-size: 14px;">Entre 1 et 9 places</small>
@@ -55,7 +55,7 @@
 
             <div style="display: flex; gap: 15px;">
                 <button type="submit" style="background-color: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 5px; font-size: 16px; cursor: pointer; flex: 1;">
-                    Ajouter la voiture
+                    Enregistrer les modifications
                 </button>
                 <a href="{{ path('voiture_index') }}" style="background-color: #6c757d; color: white; text-decoration: none; padding: 12px 30px; border-radius: 5px; font-size: 16px; text-align: center; flex: 1;">
                     Annuler

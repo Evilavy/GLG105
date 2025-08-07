@@ -16,20 +16,41 @@ class Trajet
     #[ORM\Column(length: 255)]
     private ?string $pointDepart = null;
 
-    #[ORM\Column]
-    private ?\DateTime $heureDepart = null;
+    #[ORM\Column(length: 255)]
+    private ?string $pointArrivee = null;
+
+    #[ORM\Column(type: 'date')]
+    private ?\DateTimeInterface $dateDepart = null;
+
+    #[ORM\Column(length: 10)]
+    private ?string $heureDepart = null;
+
+    #[ORM\Column(type: 'date')]
+    private ?\DateTimeInterface $dateArrivee = null;
+
+    #[ORM\Column(length: 10)]
+    private ?string $heureArrivee = null;
 
     #[ORM\Column]
-    private ?int $placesDisponibles = null;
+    private ?int $nombrePlaces = null;
+
+    #[ORM\Column]
+    private ?int $conducteurId = null;
+
+    #[ORM\Column]
+    private ?int $voitureId = null;
 
     #[ORM\Column(length: 255)]
     private ?string $statut = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $ville = null;
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $description = null;
 
     #[ORM\Column]
     private ?int $coutPoints = null;
+
+    #[ORM\Column(type: 'json', nullable: true)]
+    private array $enfantsIds = [];
 
     public function getId(): ?int
     {
@@ -44,31 +65,94 @@ class Trajet
     public function setPointDepart(string $pointDepart): static
     {
         $this->pointDepart = $pointDepart;
-
         return $this;
     }
 
-    public function getHeureDepart(): ?\DateTime
+    public function getPointArrivee(): ?string
+    {
+        return $this->pointArrivee;
+    }
+
+    public function setPointArrivee(string $pointArrivee): static
+    {
+        $this->pointArrivee = $pointArrivee;
+        return $this;
+    }
+
+    public function getDateDepart(): ?\DateTimeInterface
+    {
+        return $this->dateDepart;
+    }
+
+    public function setDateDepart(\DateTimeInterface $dateDepart): static
+    {
+        $this->dateDepart = $dateDepart;
+        return $this;
+    }
+
+    public function getHeureDepart(): ?string
     {
         return $this->heureDepart;
     }
 
-    public function setHeureDepart(\DateTime $heureDepart): static
+    public function setHeureDepart(string $heureDepart): static
     {
         $this->heureDepart = $heureDepart;
-
         return $this;
     }
 
-    public function getPlacesDisponibles(): ?int
+    public function getDateArrivee(): ?\DateTimeInterface
     {
-        return $this->placesDisponibles;
+        return $this->dateArrivee;
     }
 
-    public function setPlacesDisponibles(int $placesDisponibles): static
+    public function setDateArrivee(\DateTimeInterface $dateArrivee): static
     {
-        $this->placesDisponibles = $placesDisponibles;
+        $this->dateArrivee = $dateArrivee;
+        return $this;
+    }
 
+    public function getHeureArrivee(): ?string
+    {
+        return $this->heureArrivee;
+    }
+
+    public function setHeureArrivee(string $heureArrivee): static
+    {
+        $this->heureArrivee = $heureArrivee;
+        return $this;
+    }
+
+    public function getNombrePlaces(): ?int
+    {
+        return $this->nombrePlaces;
+    }
+
+    public function setNombrePlaces(int $nombrePlaces): static
+    {
+        $this->nombrePlaces = $nombrePlaces;
+        return $this;
+    }
+
+    public function getConducteurId(): ?int
+    {
+        return $this->conducteurId;
+    }
+
+    public function setConducteurId(int $conducteurId): static
+    {
+        $this->conducteurId = $conducteurId;
+        return $this;
+    }
+
+    public function getVoitureId(): ?int
+    {
+        return $this->voitureId;
+    }
+
+    public function setVoitureId(int $voitureId): static
+    {
+        $this->voitureId = $voitureId;
         return $this;
     }
 
@@ -80,19 +164,17 @@ class Trajet
     public function setStatut(string $statut): static
     {
         $this->statut = $statut;
-
         return $this;
     }
 
-    public function getVille(): ?string
+    public function getDescription(): ?string
     {
-        return $this->ville;
+        return $this->description;
     }
 
-    public function setVille(string $ville): static
+    public function setDescription(?string $description): static
     {
-        $this->ville = $ville;
-
+        $this->description = $description;
         return $this;
     }
 
@@ -104,7 +186,17 @@ class Trajet
     public function setCoutPoints(int $coutPoints): static
     {
         $this->coutPoints = $coutPoints;
+        return $this;
+    }
 
+    public function getEnfantsIds(): array
+    {
+        return $this->enfantsIds;
+    }
+
+    public function setEnfantsIds(array $enfantsIds): static
+    {
+        $this->enfantsIds = $enfantsIds;
         return $this;
     }
 }
