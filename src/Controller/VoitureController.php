@@ -26,41 +26,6 @@ class VoitureController extends AbstractController
         ]);
     }
 
-    #[Route('/ajouter', name: 'voiture_ajouter', methods: ['GET', 'POST'])]
-    #[IsGranted('ROLE_USER')]
-    public function ajouter(Request $request, EntityManagerInterface $entityManager): Response
-    {
-        if ($request->isMethod('POST')) {
-            $marque = $request->request->get('marque');
-            $modele = $request->request->get('modele');
-            $couleur = $request->request->get('couleur');
-            $immatriculation = $request->request->get('immatriculation');
-            $nombrePlaces = (int) $request->request->get('nombrePlaces');
-
-            // Validation
-            if (empty($marque) || empty($modele) || empty($couleur) || empty($immatriculation) || $nombrePlaces <= 0) {
-                $this->addFlash('error', 'Tous les champs sont obligatoires et le nombre de places doit être supérieur à 0');
-                return $this->redirectToRoute('voiture_ajouter');
-            }
-
-            $voiture = new Voiture();
-            $voiture->setMarque($marque);
-            $voiture->setModele($modele);
-            $voiture->setCouleur($couleur);
-            $voiture->setImmatriculation($immatriculation);
-            $voiture->setNombrePlaces($nombrePlaces);
-            $voiture->setUserId($this->getUser()->getId());
-
-            $entityManager->persist($voiture);
-            $entityManager->flush();
-
-            $this->addFlash('success', 'Voiture ajoutée avec succès !');
-            return $this->redirectToRoute('voiture_index');
-        }
-
-        return $this->render('voiture/ajouter.html.twig');
-    }
-
     #[Route('/{id}/modifier', name: 'voiture_modifier', methods: ['GET', 'POST'])]
     #[IsGranted('ROLE_USER')]
     public function modifier(Request $request, Voiture $voiture, EntityManagerInterface $entityManager): Response
@@ -70,7 +35,35 @@ class VoitureController extends AbstractController
             throw $this->createAccessDeniedException('Vous ne pouvez pas modifier cette voiture');
         }
 
+        // Vérifier si la voiture est utilisée dans un trajet futur
+        $trajetsFuturs = [];
+        try {
+            $httpClient = $this->container->get('http_client');
+            $response = $httpClient->request('GET', 'http://localhost:8080/demo-api/api/trajets/voiture/' . $voiture->getId());
+            if ($response->getStatusCode() === 200) {
+                $tousTrajets = $response->toArray();
+                $aujourdhui = date('Y-m-d');
+                
+                // Filtrer les trajets futurs
+                foreach ($tousTrajets as $trajet) {
+                    if ($trajet['dateDepart'] >= $aujourdhui && 
+                        in_array($trajet['statut'], ['disponible', 'en_cours'])) {
+                        $trajetsFuturs[] = $trajet;
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            // En cas d'erreur API, on continue mais on affiche un avertissement
+            $this->addFlash('warning', 'Impossible de vérifier les trajets associés à cette voiture.');
+        }
+
         if ($request->isMethod('POST')) {
+            // Vérifier s'il y a des trajets futurs qui utilisent cette voiture
+            if (!empty($trajetsFuturs)) {
+                $this->addFlash('error', 'Impossible de modifier cette voiture car elle est utilisée dans ' . count($trajetsFuturs) . ' trajet(s) futur(s). Veuillez d\'abord supprimer ou modifier ces trajets.');
+                return $this->redirectToRoute('voiture_modifier', ['id' => $voiture->getId()]);
+            }
+
             $marque = $request->request->get('marque');
             $modele = $request->request->get('modele');
             $couleur = $request->request->get('couleur');
@@ -96,6 +89,7 @@ class VoitureController extends AbstractController
 
         return $this->render('voiture/modifier.html.twig', [
             'voiture' => $voiture,
+            'trajetsFuturs' => $trajetsFuturs,
         ]);
     }
 

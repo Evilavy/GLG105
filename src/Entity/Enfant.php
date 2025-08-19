@@ -3,8 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EnfantRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EnfantRepository::class)]
 class Enfant
@@ -15,31 +15,44 @@ class Enfant
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom est obligatoire')]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le prénom est obligatoire')]
     private ?string $prenom = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTime $dateNaissance = null;
+    #[ORM\Column(type: 'date')]
+    #[Assert\NotNull(message: 'La date de naissance est obligatoire')]
+    #[Assert\LessThan('today', message: 'La date de naissance doit être dans le passé')]
+    private ?\DateTimeInterface $dateNaissance = null;
 
     #[ORM\Column(length: 10)]
+    #[Assert\Choice(choices: ['M', 'F'], message: 'Le sexe doit être M ou F')]
     private ?string $sexe = null;
-
-    #[ORM\Column]
-    private ?int $ecoleId = null;
 
     #[ORM\Column]
     private ?int $userId = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    private ?string $ecole = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $certificatScolarite = null;
 
-    #[ORM\Column]
-    private ?bool $valideParAdmin = false;
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $valide = false;
 
-    #[ORM\Column(type: 'datetime')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?\DateTimeInterface $dateCreation = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $dateValidation = null;
+
+    public function __construct()
+    {
+        $this->dateCreation = new \DateTime();
+    }
 
     public function getId(): ?int
     {
@@ -54,7 +67,6 @@ class Enfant
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
-
         return $this;
     }
 
@@ -66,19 +78,17 @@ class Enfant
     public function setPrenom(string $prenom): static
     {
         $this->prenom = $prenom;
-
         return $this;
     }
 
-    public function getDateNaissance(): ?\DateTime
+    public function getDateNaissance(): ?\DateTimeInterface
     {
         return $this->dateNaissance;
     }
 
-    public function setDateNaissance(\DateTime $dateNaissance): static
+    public function setDateNaissance(\DateTimeInterface $dateNaissance): static
     {
         $this->dateNaissance = $dateNaissance;
-
         return $this;
     }
 
@@ -93,17 +103,6 @@ class Enfant
         return $this;
     }
 
-    public function getEcoleId(): ?int
-    {
-        return $this->ecoleId;
-    }
-
-    public function setEcoleId(int $ecoleId): static
-    {
-        $this->ecoleId = $ecoleId;
-        return $this;
-    }
-
     public function getUserId(): ?int
     {
         return $this->userId;
@@ -112,6 +111,17 @@ class Enfant
     public function setUserId(int $userId): static
     {
         $this->userId = $userId;
+        return $this;
+    }
+
+    public function getEcole(): ?string
+    {
+        return $this->ecole;
+    }
+
+    public function setEcole(?string $ecole): static
+    {
+        $this->ecole = $ecole;
         return $this;
     }
 
@@ -126,14 +136,17 @@ class Enfant
         return $this;
     }
 
-    public function getValideParAdmin(): ?bool
+    public function isValide(): bool
     {
-        return $this->valideParAdmin;
+        return $this->valide;
     }
 
-    public function setValideParAdmin(bool $valideParAdmin): static
+    public function setValide(bool $valide): static
     {
-        $this->valideParAdmin = $valideParAdmin;
+        $this->valide = $valide;
+        if ($valide && !$this->dateValidation) {
+            $this->dateValidation = new \DateTime();
+        }
         return $this;
     }
 
@@ -148,14 +161,26 @@ class Enfant
         return $this;
     }
 
+    public function getDateValidation(): ?\DateTimeInterface
+    {
+        return $this->dateValidation;
+    }
+
+    public function setDateValidation(?\DateTimeInterface $dateValidation): static
+    {
+        $this->dateValidation = $dateValidation;
+        return $this;
+    }
+
     public function getAge(): int
     {
-        if ($this->dateNaissance === null) {
-            return 0;
-        }
-        
         $now = new \DateTime();
-        $diff = $now->diff($this->dateNaissance);
-        return $diff->y;
+        $interval = $this->dateNaissance->diff($now);
+        return $interval->y;
+    }
+
+    public function getNomComplet(): string
+    {
+        return $this->prenom . ' ' . $this->nom;
     }
 }

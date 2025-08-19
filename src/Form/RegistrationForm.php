@@ -2,7 +2,6 @@
 
 namespace App\Form;
 
-use App\Entity\User;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
@@ -31,10 +30,6 @@ class RegistrationForm extends AbstractType
                 'label' => 'Prénom',
                 'attr' => ['class' => 'form-control']
             ])
-            ->add('ville', TextType::class, [
-                'label' => 'Ville',
-                'attr' => ['class' => 'form-control']
-            ])
             ->add('role', ChoiceType::class, [
                 'label' => 'Votre rôle',
                 'choices' => [
@@ -61,14 +56,14 @@ class RegistrationForm extends AbstractType
                 'second_options' => ['label' => 'Confirmer le mot de passe'],
                 'mapped' => false,
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'Veuillez entrer un mot de passe',
-                    ]),
-                    new Length([
-                        'min' => 6,
-                        'minMessage' => 'Votre mot de passe doit faire au moins {{ limit }} caractères',
-                        'max' => 4096,
-                    ]),
+                    new NotBlank(
+                        message: 'Veuillez entrer un mot de passe'
+                    ),
+                    new Length(
+                        min: 6,
+                        minMessage: 'Votre mot de passe doit faire au moins {{ limit }} caractères',
+                        max: 4096
+                    ),
                 ],
             ])
         ;
@@ -77,7 +72,7 @@ class RegistrationForm extends AbstractType
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'data_class' => User::class,
+            'data_class' => null, // Plus d'entité Symfony
         ]);
     }
 }

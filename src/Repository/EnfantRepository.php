@@ -8,6 +8,11 @@ use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<Enfant>
+ *
+ * @method Enfant|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Enfant|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Enfant[]    findAll()
+ * @method Enfant[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class EnfantRepository extends ServiceEntityRepository
 {
@@ -16,28 +21,72 @@ class EnfantRepository extends ServiceEntityRepository
         parent::__construct($registry, Enfant::class);
     }
 
-    //    /**
-    //     * @return Enfant[] Returns an array of Enfant objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('e.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function save(Enfant $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
 
-    //    public function findOneBySomeField($value): ?Enfant
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    public function remove(Enfant $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    /**
+     * Trouve tous les enfants d'un utilisateur
+     */
+    public function findByUserId(int $userId): array
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.userId = :userId')
+            ->setParameter('userId', $userId)
+            ->orderBy('e.prenom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Trouve tous les enfants validés d'un utilisateur
+     */
+    public function findValidesByUserId(int $userId): array
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.userId = :userId')
+            ->andWhere('e.valide = :valide')
+            ->setParameter('userId', $userId)
+            ->setParameter('valide', true)
+            ->orderBy('e.prenom', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Trouve tous les enfants en attente de validation
+     */
+    public function findEnAttente(): array
+    {
+        return $this->createQueryBuilder('e')
+            ->andWhere('e.valide = :valide')
+            ->setParameter('valide', false)
+            ->orderBy('e.dateCreation', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Vérifie si un enfant est dans des trajets actifs
+     */
+    public function isEnfantDansTrajetsActifs(int $enfantId): bool
+    {
+        // Cette méthode devra être adaptée selon votre entité Trajet
+        // Pour l'instant, on retourne false
+        return false;
+    }
 }

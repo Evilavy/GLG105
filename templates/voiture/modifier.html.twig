@@ -15,8 +15,29 @@
         </div>
     {% endfor %}
 
+    {% for message in app.flashes('warning') %}
+        <div style="background-color: #fff3cd; color: #856404; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ffeaa7;">
+            {{ message }}
+        </div>
+    {% endfor %}
+
+    {% if trajetsFuturs is not empty %}
+        <div style="background-color: #fff3cd; color: #856404; padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid #ffeaa7;">
+            <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Attention : Cette voiture est utilisée dans {{ trajetsFuturs|length }} trajet(s) futur(s)</h4>
+            <p style="margin: 0 0 10px 0;">Vous ne pourrez pas modifier cette voiture tant qu'elle sera utilisée dans des trajets actifs.</p>
+            <ul style="margin: 0; padding-left: 20px;">
+                {% for trajet in trajetsFuturs %}
+                    <li>
+                        <strong>Trajet #{{ trajet.id }}</strong> : {{ trajet.pointDepart }} → {% if trajet.ecole is defined and trajet.ecole.nom is defined %}{{ trajet.ecole.nom }} - {{ trajet.ecole.ville }}{% else %}École de destination{% endif %} 
+                        ({{ trajet.dateDepart|date('d/m/Y') }} à {{ trajet.heureDepart }})
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
     <div style="background-color: white; border: 1px solid #dee2e6; border-radius: 10px; padding: 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <form method="post">
+        <form method="post" {% if trajetsFuturs is not empty %}style="opacity: 0.6; pointer-events: none;"{% endif %}>
             <div style="margin-bottom: 20px;">
                 <label for="marque" style="display: block; margin-bottom: 5px; font-weight: bold; color: #495057;">Marque *</label>
                 <input type="text" id="marque" name="marque" value="{{ voiture.marque }}" required 
@@ -50,7 +71,7 @@
                 <input type="number" id="nombrePlaces" name="nombrePlaces" value="{{ voiture.nombrePlaces }}" min="1" max="9" required 
                        style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 5px; font-size: 16px;"
                        placeholder="Ex: 5">
-                <small style="color: #6c757d; font-size: 14px;">Entre 1 et 9 places</small>
+                <small style="color: #6c757d; font-size: 14px;">Ne pas inclure la place du conducteur dans le nombre de places</small>
             </div>
 
             <div style="display: flex; gap: 15px;">
@@ -65,3 +86,4 @@
     </div>
 </div>
 {% endblock %} 
+ 

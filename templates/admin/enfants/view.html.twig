@@ -24,8 +24,8 @@
                     <h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 0.5rem 0;">
                         {{ enfant.prenom }} {{ enfant.nom }}
                     </h2>
-                    <span style="background: {{ enfant.valideParAdmin ? '#d1fae5' : '#fef3c7' }}; color: {{ enfant.valideParAdmin ? '#065f46' : '#92400e' }}; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
-                        {{ enfant.valideParAdmin ? 'Validé' : 'En attente' }}
+                    <span style="background: {{ enfant.valide ? '#d1fae5' : '#fef3c7' }}; color: {{ enfant.valide ? '#065f46' : '#92400e' }}; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+{{ enfant.valide ? 'Validé' : 'En attente' }}
                     </span>
                 </div>
             </div>
@@ -85,7 +85,7 @@
                 </div>
             </div>
 
-            {% if not enfant.valideParAdmin %}
+            {% if not enfant.valide %}
                 <div style="display: flex; gap: 1rem; justify-content: center;">
                     <form method="POST" action="{{ path('admin_enfant_validate', {'id': enfant.id}) }}" style="margin: 0;">
                         <button type="submit" 
